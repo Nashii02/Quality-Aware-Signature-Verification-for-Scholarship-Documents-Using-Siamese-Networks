@@ -1,16 +1,20 @@
 ```mermaid
 flowchart LR
     %% External Entities
-    User["GIS Analyst / Web User"]
-    SatHub["Sentinel-2 Satellite Hub"]
+    E1["Copernicus<br>(Sentinel-2 imagery)"]
+    E2["GMW / PhilSA<br>Reference mangrove maps"]
+    E3["LGU / DENR<br>Client and ground truth"]
+    E4["Environmental officer / user"]
 
-    %% Central System Process
-    System["0.0 Mangrove Gain & Loss<br>Detection System"]
+    %% Central Process
+    P0(("0.0<br>Mangrove Gain and<br>Loss Detection System<br><sub style='font-size:10px;'>Deep learning + web application</sub>"))
 
     %% Data Flows
-    User -->|"AOI Boundary Shapefile,<br>Target Year Selection (T1, T2)"| System
-    SatHub -->|"Raw Multi-band Imagery & Metadata"| System
-    
-    System -->|"Interactive Map Layers,<br>Quantified Area Statistics (ha)"| User
-    System -->|"Exported Summary PDF Report"| User
+    E1 -->|"Multi-year satellite images"| P0
+    E2 -->|"Label masks"| P0
+    E3 -->|"Planting records"| P0
+    P0 -->|"Validation feedback"| E3
+
+    E4 -->|"Year selection query"| P0
+    P0 -->|"Change maps, stats, PDF report<br>(Views results via web app)"| E4
 ```
