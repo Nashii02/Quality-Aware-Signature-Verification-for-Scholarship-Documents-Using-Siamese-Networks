@@ -38,7 +38,7 @@ Mangrove ecosystems serve as critical coastal defense mechanisms and carbon sink
 
 ---
 
-### 💡 Tech Stack Rationale
+### Tech Stack Rationale
 
 > **Why Flask over Django?**
 > Django is too heavy for what the system needs — it's built for large-scale web apps. Flask is minimal, and since the entire pipeline is already in Python, the ML model and web server live in the same codebase. One language, one environment, no translation layer.
@@ -48,7 +48,7 @@ Mangrove ecosystems serve as critical coastal defense mechanisms and carbon sink
 
 ---
 
-## 🏗️ System Architecture & Workflow
+## System Architecture & Workflow
 
 ```text
 Sentinel-2 imagery (Copernicus)
@@ -72,7 +72,7 @@ MENRO officer views results in browser
 ---
 
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 ├── CHART AND GRAPHS/
