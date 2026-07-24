@@ -9,11 +9,11 @@
 
 ---
 
-### Module 2.0: Image Preprocessing (Detailed)
+### Module 2.0: Image Preprocessing 
 
 | Input | Process | Output |
 | :--- | :--- | :--- |
-| • Raw Sentinel-2 image files *(D1)*<br>• Raw reference label maps *(Module 1.0)* | **2.1 Band Stacking:** Stack multi-spectral satellite bands.<br>**2.2 NDVI Calculation:** Compute Normalized Difference Vegetation Index: `(NIR - Red) / (NIR + Red)`.<br>**2.3 Normalization:** Scale pixel intensities to a 0–1 continuous range.<br>**2.4 Format & Project Labels:** Re-project label maps to match image coordinate reference system (CRS).<br>**2.5 Generate Patches & Align Masks:** Extract 256x256 sub-image patches and align label masks. | • Stacked 5-channel image tensors<br>• Full preprocessed annual imagery *(Stored in D2)*<br>• 256x256 training image patches & label masks *(Stored in D2)* |
+| • Raw Sentinel-2 Bands *(D1)*<br>• AOI Shapefile & CRS *(D1)*<br>• Raw Reference Label Maps *(Module 1.0)* | **2.1 Band Stacking:** Layer multi-spectral bands into single composite array.<br>**2.2 NDVI Calculation:** Compute $\text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red} + 10^{-7}}$.<br>**2.3 Normalization:** Apply Min-Max scaling $(0.0 - 1.0)$ across channels.<br>**2.4 Format & Project:** Re-project label maps to match image EPSG projection.<br>**2.5 Tile Rasters:** Extract $256 \times 256$ sliding window image patches.<br>**2.6 Align Label Masks:** Extract and map matching $256 \times 256$ ground-truth label tiles. | • 5-Channel Normalized Scene Arrays *(Stored in D2)*<br>• $256 \times 256$ Training Image Patches *(Stored in D2)*<br>• $256 \times 256$ Aligned Label Masks *(Stored in D2)* |
 
 ---
 
