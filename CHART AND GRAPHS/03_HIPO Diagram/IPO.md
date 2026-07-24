@@ -1,56 +1,54 @@
+```mermaid
+flowchart TD
+    %% Module 1.0: Data Acquisition
+    subgraph M1 ["Module 1.0: Data Acquisition"]
+        direction LR
+        I1["Sentinel-2 Bands, AOI Shapefile,<br>Reference Maps, Field Records"] --> P1["1.0 Query Copernicus &<br>Ingest Reference/Field Data"] --> O1["Raw Rasters, AOI CRS,<br>& Raw Labels (D1)"]
+    end
 
----
+    %% Module 2.0: Image Preprocessing
+    subgraph M2 ["Module 2.0: Image Preprocessing"]
+        direction LR
+        I2["Raw Rasters, AOI CRS,<br>& Labels (D1)"] --> P2["2.1 Stack Bands<br>2.2 NDVI w/ Epsilon<br>2.3 Min-Max Norm<br>2.4 Project Labels<br>2.5 Tile Rasters (256x256)<br>2.6 Tile Masks (256x256)"] --> O2["5-Channel Scenes, Patches,<br>& Aligned Masks (D2)"]
+    end
 
-### Module 1.0: Data Acquisition
+    %% Module 3.0: Model Training
+    subgraph M3 ["Module 3.0: Model Training"]
+        direction LR
+        I3["256x256 Patches & Masks (D2),<br>Hyperparameters"] --> P3["3.0 Train U-Net Architecture &<br>Save Optimal Weights"] --> O3["Trained Model Checkpoint<br>.h5 / .pth (D3)"]
+    end
 
-| Input | Process | Output |
-| :--- | :--- | :--- |
-| • Multi-year raw Sentinel-2 bands *(Copernicus Hub)*<br>• Reference mangrove boundary maps *(GMW / PhilSA)*<br>• Planting records & field boundary updates *(LGU / DENR)* | 1. Query Copernicus Hub for multi-year satellite imagery.<br>2. Ingest reference ground truth maps.<br>3. Collect local ground truth planting and cutting records from LGU/DENR.<br>4. Store raw raster files into Data Store D1. | • Raw satellite image rasters *(Stored in D1)*<br>• Raw reference label masks |
+    %% Module 4.0: Per-Year Prediction
+    subgraph M4 ["Module 4.0: Per-Year Prediction"]
+        direction LR
+        I4["Annual Imagery (D2),<br>Model Weights (D3),<br>Target Year & Threshold"] --> P4["4.0 Inference & Thresholding (0.50)"] --> O4["Binary Mangrove Masks (D4)"]
+    end
 
----
+    %% Module 5.0: Temporal Change Detection
+    subgraph M5 ["Module 5.0: Temporal Change Detection"]
+        direction LR
+        I5["baseline_mask_id T1 (D4),<br>target_mask_id T2 (D4)"] --> P5["5.1 Verify CRS & Shape<br>5.2 Pixel Matrix Subtraction<br>5.3 Hectare Quantification"] --> O5["Change Matrix Raster &<br>Hectare Statistics (D5)"]
+    end
 
-### Module 2.0: Image Preprocessing 
+    %% Module 6.0: Ground Truth Validation
+    subgraph M6 ["Module 6.0: Ground Truth Validation"]
+        direction LR
+        I6["analysis_id (D5),<br>user_id, Field Reports"] --> P6["6.1 Overlay Reports<br>6.2 Classify Verification<br>6.3 Record Validation Log<br>6.4 Training Feedback"] --> O6["FIELD_VALIDATION_LOG (D6/DB),<br>Refined Feedback Loop"]
+    end
 
-| Input | Process | Output |
-| :--- | :--- | :--- |
-| • Raw Sentinel-2 Bands *(D1)*<br>• AOI Shapefile & CRS *(D1)*<br>• Raw Reference Label Maps *(Module 1.0)* | **2.1 Band Stacking:** Layer multi-spectral bands into single composite array.<br>**2.2 NDVI Calculation:** Compute $\text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red} + 10^{-7}}$.<br>**2.3 Normalization:** Apply Min-Max scaling $(0.0 - 1.0)$ across channels.<br>**2.4 Format & Project:** Re-project label maps to match image EPSG projection.<br>**2.5 Tile Rasters:** Extract $256 \times 256$ sliding window image patches.<br>**2.6 Align Label Masks:** Extract and map matching $256 \times 256$ ground-truth label tiles. | • 5-Channel Normalized Scene Arrays *(Stored in D2)*<br>• $256 \times 256$ Training Image Patches *(Stored in D2)*<br>• $256 \times 256$ Aligned Label Masks *(Stored in D2)* |
+    %% Module 7.0: Web App & Reporting
+    subgraph M7 ["Module 7.0: Web Application & Reporting"]
+        direction LR
+        I7["User Credentials,<br>Year Query (T1, T2),<br>Change Data (D5)"] --> P7["7.1 Authenticate User<br>7.2 Query Change Data<br>7.3 Render GIS Dashboard<br>7.4 Export PDF Summary"] --> O7["Interactive GIS Dashboard,<br>Exported PDF Report"]
+    end
 
----
-
-### Module 3.0: U-Net Model Training
-
-| Input | Process | Output |
-| :--- | :--- | :--- |
-| • 256x256 training patches & label masks *(D2)*<br>• Network hyperparameters *(Epochs, Batch Size, Learning Rate)* | 1. Ingest image patches and paired binary ground-truth masks.<br>2. Train the U-Net convolutional neural network architecture.<br>3. Monitor validation loss and evaluate accuracy metrics.<br>4. Save the optimal neural network checkpoint weights. | • Trained U-Net model weight checkpoint (`.h5` / `.pth` stored in D3) |
-
----
-
-### Module 4.0: Per-Year Prediction
-
-| Input | Process | Output |
-| :--- | :--- | :--- |
-| • Full preprocessed annual imagery *(D2)*<br>• Trained U-Net model weights *(D3)* | 1. Load trained U-Net model weights.<br>2. Pass full preprocessed multi-temporal satellite scenes through the model.<br>3. Generate continuous probability map patches (0.0 – 1.0).<br>4. Apply decision threshold (0.50) to create binary mangrove classifications. | • Annual binary mangrove masks *(2019, 2021, 2023, 2024 stored in D4)* |
-
----
-
-### Module 5.0: Temporal Change Detection
-
-| Input | Process | Output |
-| :--- | :--- | :--- |
-| • Baseline binary mask ($T1$, e.g., 2019) *(D4)*<br>• Target binary mask ($T2$, e.g., 2024) *(D4)* | 1. Load binary masks for selected years $T1$ and $T2$.<br>2. Perform pixel-by-pixel spatial comparison to derive 4 change classes:<br>&nbsp;&nbsp;• Unchanged Non-Mangrove (0)<br>&nbsp;&nbsp;• Stable Mangrove (1)<br>&nbsp;&nbsp;• Mangrove Loss (2)<br>&nbsp;&nbsp;• Mangrove Gain (3)<br>3. Convert pixel counts to hectares (`Count × 0.01 ha`).<br>4. Calculate net gain/loss metrics (`Gain - Loss`). | • 4-class spatial change matrix raster *(Stored in D5)*<br>• Quantified surface area statistics in hectares *(Stored in D5)* |
-
----
-
-### Module 6.0: Ground Truth Validation
-
-| Input | Process | Output |
-| :--- | :--- | :--- |
-| • Generated change maps *(Module 5.0)*<br>• Planting records, cutting logs, and field reports *(LGU / DENR)* | 1. Overlay spatial change maps with local field verification data.<br>2. Compare detected gain/loss boundaries against ground truth planting/cutting logs.<br>3. Log false positives and misclassifications.<br>4. Provide feedback to refine training data and label maps. | • Refined validation feedback<br>• Updated training labels for acquisition pipeline |
-
----
-
-### Module 7.0: Web Application & Reporting
-
-| Input | Process | Output |
-| :--- | :--- | :--- |
-| • Change maps & hectare statistics *(D5)*<br>• User year selection query *(Baseline T1, Target T2)* | 1. Process user year selection queries via the web interface.<br>2. Query Data Store D5 for matching spatial change maps and hectare metrics.<br>3. Render interactive multi-layer map overlays (Stable, Loss, Gain).<br>4. Display dynamic charts and net change statistical summary card.<br>5. Compile spatial maps and statistical tables into an exportable PDF document. | • Interactive GIS web dashboard<br>• Exported summary PDF report |
+    %% Pipeline Inter-Module Data Connections
+    O1 --> I2
+    O2 --> I3
+    O2 --> I4
+    O3 --> I4
+    O4 --> I5
+    O5 --> I6
+    O5 --> I7
+    O6 -. Feedback Loop .-> I1
+```
