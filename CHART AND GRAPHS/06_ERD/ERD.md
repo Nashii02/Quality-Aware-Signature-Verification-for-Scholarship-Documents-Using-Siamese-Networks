@@ -1,3 +1,4 @@
+```mermaid
 erDiagram
     USER_ACCOUNT ||--o{ PDF_REPORT : "1 : N"
     USER_ACCOUNT ||--o{ FIELD_VALIDATION_LOG : "1 : N"
@@ -97,3 +98,4 @@ erDiagram
         datetime generated_at
         string pdf_file_path
     }
+```
