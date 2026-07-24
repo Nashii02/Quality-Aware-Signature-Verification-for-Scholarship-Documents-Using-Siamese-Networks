@@ -1,5 +1,6 @@
-```mermaid
 erDiagram
+    USER_ACCOUNT ||--o{ PDF_REPORT : "1 : N"
+    USER_ACCOUNT ||--o{ FIELD_VALIDATION_LOG : "1 : N"
     STUDY_AREA ||--|{ SATELLITE_SCENE : "1 : N"
     SATELLITE_SCENE ||--|{ TRAINING_PATCH : "1 : N"
     SATELLITE_SCENE ||--|{ BINARY_MASK : "1 : N"
@@ -7,6 +8,16 @@ erDiagram
     BINARY_MASK ||--|{ CHANGE_ANALYSIS : "1 : N (Baseline T1 / Target T2)"
     CHANGE_ANALYSIS ||--|| AREA_STATISTICS : "1 : 1"
     CHANGE_ANALYSIS ||--o{ PDF_REPORT : "1 : N"
+    CHANGE_ANALYSIS ||--o{ FIELD_VALIDATION_LOG : "1 : N"
+
+    USER_ACCOUNT {
+        int user_id PK
+        string username
+        string email
+        string password_hash
+        string role
+        datetime created_at
+    }
 
     STUDY_AREA {
         int aoi_id PK
@@ -69,10 +80,20 @@ erDiagram
         float net_change_hectares
     }
 
+    FIELD_VALIDATION_LOG {
+        int validation_id PK
+        int analysis_id FK
+        int user_id FK
+        string inspector_name
+        string ground_truth_status
+        string field_notes
+        datetime validated_at
+    }
+
     PDF_REPORT {
         int report_id PK
         int analysis_id FK
+        int user_id FK
         datetime generated_at
         string pdf_file_path
     }
-```
